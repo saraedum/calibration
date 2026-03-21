@@ -1,16 +1,19 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import CalibrationStage from "./components/CalibrationStage.vue";
+import CalibrationWizard from "./components/CalibrationWizard.vue";
 import VideoMirrorPlayer from "./components/VideoMirrorPlayer.vue";
 import { screens } from "./data/screens";
+import { wizardSteps } from "./data/wizard";
 
 const currentIndex = ref(0);
-const mode = ref("calibration");
+const mode = ref("home");
 const playerSrc = ref("");
 const playerTitle = ref("Calibration sample");
 const playerFormat = ref("Browser Player");
 const returnToIndex = ref(0);
 const brightnessOffset = ref(0);
+const wizardIndex = ref(0);
 
 const BRIGHTNESS_STEP = 0.02;
 const MAX_BRIGHTNESS_OFFSET = 20;
@@ -27,7 +30,7 @@ const rightBrightness = computed(
 
 const syncFromUrl = () => {
   const params = new URLSearchParams(window.location.search);
-  mode.value = params.get("mode") === "player" ? "player" : "calibration";
+  mode.value = params.get("mode") === "player" ? "player" : "home";
   playerSrc.value = params.get("src") ?? "";
   playerTitle.value = params.get("title") ?? "Calibration sample";
   playerFormat.value = params.get("format") ?? "Browser Player";
@@ -73,8 +76,17 @@ const onZoneClick = async (direction) => {
   await goPrevious();
 };
 
+const onWizardZoneClick = (direction) => {
+  if (direction === "next") {
+    goWizardNext();
+    return;
+  }
+
+  goWizardPrevious();
+};
+
 const onShellClick = async (event) => {
-  if (mode.value !== "calibration") {
+  if (!["calibration", "wizard"].includes(mode.value)) {
     return;
   }
 
@@ -86,6 +98,12 @@ const onShellClick = async (event) => {
   }
 
   const direction = event.clientX >= window.innerWidth / 2 ? "next" : "previous";
+
+  if (mode.value === "wizard") {
+    onWizardZoneClick(direction);
+    return;
+  }
+
   await onZoneClick(direction);
 };
 
@@ -96,6 +114,27 @@ const onKeydown = async (event) => {
       currentIndex.value = returnToIndex.value;
       mode.value = "calibration";
       setCalibrationUrl();
+    }
+
+    return;
+  }
+
+  if (mode.value === "wizard") {
+    if (event.key === "Escape" || event.key === "Backspace") {
+      event.preventDefault();
+      mode.value = "home";
+      setCalibrationUrl();
+      return;
+    }
+
+    if (["ArrowRight", "PageDown", " ", "Enter"].includes(event.key)) {
+      event.preventDefault();
+      goWizardNext();
+    }
+
+    if (["ArrowLeft", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      goWizardPrevious();
     }
 
     return;
@@ -142,6 +181,25 @@ const leavePlayer = () => {
   setCalibrationUrl();
 };
 
+const openCalibration = async () => {
+  await enterFullscreen();
+  mode.value = "calibration";
+};
+
+const openWizard = async () => {
+  await enterFullscreen();
+  wizardIndex.value = 0;
+  mode.value = "wizard";
+};
+
+const goWizardNext = () => {
+  wizardIndex.value = (wizardIndex.value + 1) % wizardSteps.length;
+};
+
+const goWizardPrevious = () => {
+  wizardIndex.value = Math.max(0, wizardIndex.value - 1);
+};
+
 const dimLeft = () => {
   brightnessOffset.value = Math.max(
     brightnessOffset.value - 1,
@@ -168,7 +226,24 @@ const dimRight = () => {
     @back="leavePlayer"
   />
 
-  <main v-else class="app-shell" @click="onShellClick">
+  <CalibrationWizard
+    v-else-if="mode === 'wizard'"
+    :left-brightness="leftBrightness"
+    :left-brightness-steps="leftBrightnessSteps"
+    :right-brightness="rightBrightness"
+    :right-brightness-steps="rightBrightnessSteps"
+    :step-index="wizardIndex"
+    :steps="wizardSteps"
+    @back="mode = 'home'"
+    @click="onShellClick"
+    @dim-left="dimLeft"
+    @dim-right="dimRight"
+    @next="goWizardNext"
+    @open-calibration="openCalibration"
+    @previous="goWizardPrevious"
+  />
+
+  <main v-else-if="mode === 'calibration'" class="app-shell" @click="onShellClick">
     <div class="stage-grid">
       <div class="stage-pane" :style="{ filter: `brightness(${leftBrightness})` }">
         <CalibrationStage :screen="currentScreen" />
@@ -177,6 +252,16 @@ const dimRight = () => {
         <CalibrationStage :screen="currentScreen" />
       </div>
     </div>
+
+    <button
+      v-if="currentIndex === 0"
+      class="mode-jump-button"
+      type="button"
+      data-no-nav
+      @click="openWizard"
+    >
+      Open wizard
+    </button>
 
     <footer class="brightness-control" data-no-nav>
       <button class="brightness-button" type="button" @click="dimLeft">
@@ -188,5 +273,24 @@ const dimRight = () => {
         <span class="brightness-value">{{ rightBrightnessSteps }}</span>
       </button>
     </footer>
+  </main>
+
+  <main v-else class="home-shell" data-no-nav>
+    <section class="home-panel">
+      <span class="home-kicker">Screen Calibration</span>
+      <h1 class="home-title">Choose a calibration mode</h1>
+      <p class="home-copy">
+        Use the browser to flip through reference screens freely, or enter the guided wizard to
+        tune the adjustable display against the reference display shown on the other half of the
+        screen.
+      </p>
+
+      <div class="home-actions">
+        <button class="home-button" type="button" @click="openWizard">Open wizard</button>
+        <button class="home-button home-button-secondary" type="button" @click="openCalibration">
+          Open calibration browser
+        </button>
+      </div>
+    </section>
   </main>
 </template>

@@ -1,16 +1,19 @@
 const gray = (...colors) => ({
   type: "bars",
   category: "Grayscale",
-  bars: colors.map((color) => ({ color })),
+  bars: [...colors.map((color) => ({ color })), { color: "#000000", label: "Black bar" }],
 });
 
 const color = (name, colors) => ({
   type: "bars",
   category: "Color",
   name,
-  bars: colors.map((bar) =>
-    typeof bar === "string" ? { color: bar } : { color: bar.color, label: bar.label },
-  ),
+  bars: [
+    ...colors.map((bar) =>
+      typeof bar === "string" ? { color: bar } : { color: bar.color, label: bar.label },
+    ),
+    { color: "#000000", label: "Black bar" },
+  ],
 });
 
 const photo = (name, src, note, credit) => ({
@@ -20,6 +23,23 @@ const photo = (name, src, note, credit) => ({
   src,
   note,
   credit,
+});
+
+const peopleGrid = (names, photos) => ({
+  type: "people-grid",
+  category: "Reference Photo Grid",
+  name: names.join(" + "),
+  note: "Compare four faces at once and balance the full set against the reference side.",
+  photos,
+});
+
+const splitPortrait = (name, top, bottom) => ({
+  type: "split-portrait",
+  category: "Reference Photo",
+  name,
+  note: "Use this split portrait to compare two skin tones in one frame.",
+  top,
+  bottom,
 });
 
 const playerIntent = (url, packageName) => {
@@ -58,6 +78,63 @@ const externalLinks = (name, note, links) => ({
     ],
   })),
 });
+
+const combinations = (items, size) => {
+  if (size === 0) {
+    return [[]];
+  }
+
+  if (items.length < size) {
+    return [];
+  }
+
+  return items.flatMap((item, index) =>
+    combinations(items.slice(index + 1), size - 1).map((rest) => [item, ...rest]),
+  );
+};
+
+const portraitReferences = [
+  photo(
+    "Deep skin reference",
+    "reference-dark-skin.jpg",
+    "Use this to compare deep skin rendering, shadow detail, and highlight rolloff on the forehead and cheeks.",
+    "Maxette Pirbakas, Wikimedia Commons, CC BY-SA 4.0",
+  ),
+  photo(
+    "East Asian skin reference",
+    "reference-asian-headshot.jpg",
+    "Use this to compare lighter midtones, natural facial contrast, and neutral balance around the eyes and lips.",
+    "Naoko Yamazaki, NASA / Robert Markowitz, public domain",
+  ),
+  photo(
+    "East Asian skin reference II",
+    "reference-east-asian-2.jpg",
+    "Use this to compare East Asian skin tones in a second neutral official portrait with different facial structure and lighting.",
+    "Soichi Noguchi official portrait 2020, NASA, public domain",
+  ),
+  photo(
+    "Golden-hour skin reference",
+    "reference-golden-hour.jpg",
+    "Use this to compare warm ambient light, mixed highlights, and how each display handles skin under sunset tones.",
+    "Young girl laughing in sunshine (2), Basile Morin, CC BY-SA 4.0",
+  ),
+  photo(
+    "Light skin reference",
+    "reference-light-skin-1.jpg",
+    "Use this to compare pale skin rendering, facial detail, and neutral highlight handling in a cleaner high-quality portrait.",
+    "Jessica U. Meir portrait, NASA, public domain",
+  ),
+];
+
+const peopleGridScreens = combinations(portraitReferences, 4).map((group) =>
+  peopleGrid(
+    group.map((entry) => entry.name.replace(" reference", "").replace(" II", " II")),
+    group.map((entry) => ({
+      src: entry.src,
+      alt: entry.name,
+    })),
+  ),
+);
 
 export const screens = [
   gray("#050505", "#1a1a1a", "#2f2f2f", "#444444"),
@@ -117,48 +194,34 @@ export const screens = [
     { color: "#ff7fff", label: "Magenta tint" },
     { color: "#ffff7f", label: "Yellow tint" },
   ]),
-  photo(
-    "Deep skin reference",
-    "reference-dark-skin.jpg",
-    "Use this to compare deep skin rendering, shadow detail, and highlight rolloff on the forehead and cheeks.",
-    "Maxette Pirbakas, Wikimedia Commons, CC BY-SA 4.0",
+  ...portraitReferences,
+  splitPortrait(
+    "Black woman top / Asian child bottom",
+    {
+      src: "reference-dark-skin.jpg",
+      alt: "Black woman top half",
+      position: "top",
+    },
+    {
+      src: "reference-golden-hour.jpg",
+      alt: "Asian child bottom half",
+      position: "bottom",
+    },
   ),
-  photo(
-    "Deep skin reference II",
-    "reference-deep-skin-2.jpg",
-    "Use this to compare deep skin tones under a more neutral studio portrait with cleaner highlight control.",
-    "Victor J. Glover official portrait, NASA, public domain",
+  splitPortrait(
+    "Asian child top / Black woman bottom",
+    {
+      src: "reference-golden-hour.jpg",
+      alt: "Asian child top half",
+      position: "top",
+    },
+    {
+      src: "reference-dark-skin.jpg",
+      alt: "Black woman bottom half",
+      position: "bottom",
+    },
   ),
-  photo(
-    "East Asian skin reference",
-    "reference-asian-headshot.jpg",
-    "Use this to compare lighter midtones, natural facial contrast, and neutral balance around the eyes and lips.",
-    "Naoko Yamazaki, NASA / Robert Markowitz, public domain",
-  ),
-  photo(
-    "East Asian skin reference II",
-    "reference-east-asian-2.jpg",
-    "Use this to compare East Asian skin tones in a second neutral official portrait with different facial structure and lighting.",
-    "Soichi Noguchi official portrait 2020, NASA, public domain",
-  ),
-  photo(
-    "Golden-hour skin reference",
-    "reference-golden-hour.jpg",
-    "Use this to compare warm ambient light, mixed highlights, and how each display handles skin under sunset tones.",
-    "Young girl laughing in sunshine (2), Basile Morin, CC BY-SA 4.0",
-  ),
-  photo(
-    "Light skin reference",
-    "reference-light-skin-1.jpg",
-    "Use this to compare pale skin rendering, facial detail, and neutral highlight handling in a cleaner high-quality portrait.",
-    "Jessica U. Meir portrait, NASA, public domain",
-  ),
-  photo(
-    "Light skin reference II",
-    "reference-light-skin-2.jpg",
-    "Use this to compare a second light-skin portrait with different lighting and contrast while watching for clipping and color cast.",
-    "Christina Koch official portrait in an EMU, NASA, public domain",
-  ),
+  ...peopleGridScreens,
   externalLinks(
     "4K video launchers",
     "These links target common Android TV players. If an intent is ignored or the app is missing, use the direct URL instead. HDR10+ playback depends on the player and display chain.",

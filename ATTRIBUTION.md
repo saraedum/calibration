@@ -18,10 +18,6 @@ The calibration photo screens use the following freely licensed images:
   - Source: Unused legacy portrait asset
   - License: CC BY-SA 4.0
   - URL: https://commons.wikimedia.org/wiki/File:Nathalie-frey.jpg
-- `public/reference-deep-skin-2.jpg`
-  - Source: `Victor J. Glover official portrait`
-  - License: Public domain
-  - URL: https://commons.wikimedia.org/wiki/File:Victor_J._Glover_official_portrait.jpg
 - `public/reference-east-asian-2.jpg`
   - Source: `Soichi Noguchi official portrait 2020`
   - License: Public domain
@@ -30,7 +26,3 @@ The calibration photo screens use the following freely licensed images:
   - Source: `Jessica U. Meir portrait`
   - License: Public domain
   - URL: https://commons.wikimedia.org/wiki/File:Jessica_U._Meir_portrait.jpg
-- `public/reference-light-skin-2.jpg`
-  - Source: `Christina Koch official portrait in an EMU`
-  - License: Public domain
-  - URL: https://commons.wikimedia.org/wiki/File:Christina_Koch_official_portrait_in_an_EMU.jpg

@@ -36,6 +36,40 @@ const browserPlayerHref = (link) => {
       <img class="reference-photo" :src="screen.src" :alt="screen.name" draggable="false" />
     </div>
 
+    <div v-else-if="screen.type === 'people-grid'" class="people-grid-stage">
+      <div class="people-grid">
+        <img
+          v-for="(photo, index) in screen.photos"
+          :key="`${photo.src}-${index}`"
+          class="people-grid-photo"
+          :src="photo.src"
+          :alt="photo.alt"
+          draggable="false"
+        />
+      </div>
+    </div>
+
+    <div v-else-if="screen.type === 'split-portrait'" class="split-portrait-stage">
+      <img
+        class="split-portrait-half"
+        :class="`split-portrait-half-${screen.top.position}`"
+        :src="screen.top.src"
+        :alt="screen.top.alt"
+        draggable="false"
+      />
+      <div class="split-portrait-separators">
+        <div class="split-portrait-separator split-portrait-separator-red" />
+        <div class="split-portrait-separator split-portrait-separator-orange" />
+      </div>
+      <img
+        class="split-portrait-half"
+        :class="`split-portrait-half-${screen.bottom.position}`"
+        :src="screen.bottom.src"
+        :alt="screen.bottom.alt"
+        draggable="false"
+      />
+    </div>
+
     <div v-else-if="screen.type === 'links'" class="links-stage">
       <div class="links-panel">
         <p class="links-title">{{ screen.name }}</p>
