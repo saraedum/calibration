@@ -222,6 +222,7 @@ export const wizardSteps = [
     [80, 84, 88, 92, 96, 100].map(grayAtPercent),
   ),
   cmsStep("Red", "#bc2525", "#f08a8a", "#6e1717", "#b4546e"),
+  cmsStep("Orange + Red", "#bc2525", "#b4546e", "#ff8c00", "#c45100"),
   cmsStep("Green", "#2f8f46", "#8fd39e", "#1f5f2f", "#7a9d4c"),
   wizardValidationBars(
     "Validate red + green together",
@@ -359,6 +360,21 @@ export const wizardSteps = [
       { color: "#ffb04d", label: "Light orange" },
       { color: "#d96f00", label: "Deep orange" },
       { color: "#c45100", label: "Orange-red mix" },
+    ],
+  ),
+  wizardValidationBars(
+    "Validate red + orange focus",
+    "Use this simpler four-bar screen to check the red-orange region directly before the broader flesh validation step.",
+    [
+      "Red should stay red and not get pulled orange.",
+      "Orange should stay orange and not get pushed yellow.",
+      "The existing mix colors should still sit naturally against red and orange.",
+    ],
+    [
+      { color: "#bc2525", label: "Red" },
+      { color: "#ff8c00", label: "Orange" },
+      { color: "#c45100", label: "Orange-red mix" },
+      { color: "#b4546e", label: "Red mix" },
     ],
   ),
   wizardValidationBars(
